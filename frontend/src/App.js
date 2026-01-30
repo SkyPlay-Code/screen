@@ -2,8 +2,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import './App.css';
 
-// CONFIGURATION
-// Ensure this is your RENDER URL (No trailing slash)
 const API_URL = 'https://recorder-api-t4vv.onrender.com'; 
 const CHUNK_DURATION = 300000; // 5 Minutes
 const MAX_RETRIES = 3; 
@@ -24,27 +22,52 @@ function App() {
   useEffect(() => {
     axios.get(`${API_URL}/`)
       .then(() => setBackendStatus("Ready"))
-      .catch(() => setBackendStatus("Backend Sleeping (Waking up...)"));
+      .catch(() => setBackendStatus("Backend Sleeping..."));
   }, []);
 
-  // 2. Start Recording (No Login Required anymore)
+  // 2. The Helper Function (This was missing!)
+  const startStream = (stream) => {
+    const options = { mimeType: 'video/webm; codecs=vp9' };
+    const recorder = new MediaRecorder(
+      stream, 
+      MediaRecorder.isTypeSupported(options.mimeType) ? options : undefined
+    );
+
+    recorder.ondataavailable = handleDataAvailable;
+    
+    // Stop recording if the user stops sharing via browser UI
+    stream.getVideoTracks()[0].onended = stopRecording;
+
+    recorder.start(CHUNK_DURATION); 
+    
+    mediaRecorderRef.current = recorder;
+    setIsRecording(true);
+    chunkSequence.current = 0;
+    
+    timerInterval.current = setInterval(() => {
+      setTimer(t => t + 1);
+    }, 1000);
+  };
+
+  // 3. Start Recording Logic
   const startRecording = async () => {
     try {
-      // Instead of checking if it exists, just try to use it immediately
+      // Try screen capture immediately (Works on Desktop and Modern Android)
       const stream = await navigator.mediaDevices.getDisplayMedia({
-        video: true, // Android is very strict: keep this simple
+        video: true,
         audio: true 
       });
-    
+
       startStream(stream);
-    
+
     } catch (err) {
-      console.error(err);
-      // If it fails, then we explain why
+      console.error("Capture Error:", err);
       if (err.name === 'TypeError' || err.name === 'ReferenceError') {
-        alert("Your Android Chrome version is too old to support screen recording. Please update to Chrome 119+");
+        alert("Your browser version is too old for screen recording. Please update Chrome.");
+      } else if (err.name === 'NotAllowedError') {
+        alert("Permission denied. You must select a screen to share.");
       } else {
-        alert("Android Error: " + err.message);
+        alert("Error: " + err.message);
       }
     }
   };
@@ -52,7 +75,9 @@ function App() {
   const stopRecording = () => {
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
       mediaRecorderRef.current.stop();
-      mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
+      if (mediaRecorderRef.current.stream) {
+        mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
+      }
     }
     clearInterval(timerInterval.current);
     setIsRecording(false);
@@ -82,11 +107,6 @@ function App() {
   const processQueue = async () => {
     if (isUploadingRef.current || uploadQueueRef.current.length === 0) return;
 
-    if (!navigator.onLine) {
-        setTimeout(processQueue, 5000);
-        return;
-    }
-
     isUploadingRef.current = true;
     const currentChunk = uploadQueueRef.current[0];
     updateChunkStatus(currentChunk.id, 'uploading');
@@ -96,7 +116,6 @@ function App() {
     formData.append('filename', currentChunk.filename);
 
     try {
-      // Direct upload to the endpoint
       await axios.post(`${API_URL}/upload`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
@@ -140,10 +159,12 @@ function App() {
       </div>
       
       <div className="controls">
-        {isRecording && <div className="timer-wrapper">
-          <span className="recording-indicator"></span>
-          <span className="timer">{formatTime(timer)}</span>
-        </div>}
+        {isRecording && (
+          <div className="timer-wrapper">
+            <span className="recording-indicator"></span>
+            <span className="timer">{formatTime(timer)}</span>
+          </div>
+        )}
         
         {!isRecording ? (
           <button onClick={startRecording} className="btn-start">
@@ -159,7 +180,7 @@ function App() {
           <p style={{fontWeight: 'bold'}}>Ready to beam to Drive?</p>
         )}
       </div>
-      
+
       <div className="upload-list">
         <h3>Live Feed Chunks</h3>
         {uploadQueue.length === 0 && (
