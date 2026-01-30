@@ -29,63 +29,23 @@ function App() {
 
   // 2. Start Recording (No Login Required anymore)
   const startRecording = async () => {
-    // 1. Mobile Check
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-
-    if (isMobile) {
-       // On Mobile, we often can't do "getDisplayMedia" reliably
-       // So we ask user if they want to use Camera instead (which works everywhere)
-       const confirmCamera = window.confirm("Screen recording is difficult on mobile browsers. Switch to Camera recording?");
-       
-       if (confirmCamera) {
-         try {
-           const stream = await navigator.mediaDevices.getUserMedia({
-             video: true,
-             audio: true
-           });
-           // SUCCESS: Start Recording Camera
-           startStream(stream);
-           return;
-         } catch(err) {
-           alert("Camera permission denied.");
-           return;
-         }
-       }
-       // If they say NO, we try screen recording anyway (might work on Android)
+    // 1. Check if the browser even supports Screen Recording
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+      alert("Sorry! Your mobile browser does not support Screen Recording. Please try a Desktop or Android Chrome.");
+      return;
     }
 
-    // 2. Standard Screen Recording (Desktop / Android Chrome)
     try {
       const stream = await navigator.mediaDevices.getDisplayMedia({
         video: { cursor: "always" },
         audio: true 
       });
-      // SUCCESS: Start Recording Screen
-      startStream(stream);
+
 
     } catch (err) {
       console.error("Error starting capture:", err);
-      alert("Could not start recording. Note: iPhones generally do not allow screen recording from websites.");
+      alert("Could not start recording: " + err.message);
     }
-  };
-
-  // Helper function to handle the stream once we get it
-  const startStream = (stream) => {
-    const options = { mimeType: 'video/webm; codecs=vp9' };
-    const recorder = new MediaRecorder(stream, MediaRecorder.isTypeSupported(options.mimeType) ? options : undefined);
-
-    recorder.ondataavailable = handleDataAvailable;
-    stream.getVideoTracks()[0].onended = stopRecording;
-
-    recorder.start(CHUNK_DURATION); 
-    
-    mediaRecorderRef.current = recorder;
-    setIsRecording(true);
-    chunkSequence.current = 0;
-    
-    timerInterval.current = setInterval(() => {
-      setTimer(t => t + 1);
-    }, 1000);
   };
 
   const stopRecording = () => {
