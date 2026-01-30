@@ -29,30 +29,22 @@ function App() {
 
   // 2. Start Recording (No Login Required anymore)
   const startRecording = async () => {
+    // 1. Check if the browser even supports Screen Recording
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+      alert("Sorry! Your mobile browser does not support Screen Recording. Please try a Desktop or Android Chrome.");
+      return;
+    }
+
     try {
       const stream = await navigator.mediaDevices.getDisplayMedia({
         video: { cursor: "always" },
         audio: true 
       });
 
-      const options = { mimeType: 'video/webm; codecs=vp9' };
-      const recorder = new MediaRecorder(stream, MediaRecorder.isTypeSupported(options.mimeType) ? options : undefined);
-
-      recorder.ondataavailable = handleDataAvailable;
-      stream.getVideoTracks()[0].onended = stopRecording;
-
-      recorder.start(CHUNK_DURATION); 
-      
-      mediaRecorderRef.current = recorder;
-      setIsRecording(true);
-      chunkSequence.current = 0;
-      
-      timerInterval.current = setInterval(() => {
-        setTimer(t => t + 1);
-      }, 1000);
 
     } catch (err) {
       console.error("Error starting capture:", err);
+      alert("Could not start recording: " + err.message);
     }
   };
 

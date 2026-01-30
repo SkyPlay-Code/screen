@@ -161,3 +161,33 @@ h1 {
   animation: pulse 1s infinite;
   border: 2px solid var(--black);
 }
+
+/* ... existing css ... */
+
+/* Mobile Responsiveness */
+@media (max-width: 600px) {
+  .container {
+    width: 85%;      /* Use percentage instead of fixed px */
+    margin: 20px auto; /* Smaller margins */
+    padding: 20px;     /* Less padding */
+    border-width: 3px; /* Slightly thinner border */
+    box-shadow: 8px 8px 0px var(--black); /* Smaller shadow */
+  }
+
+  h1 {
+    font-size: 1.8rem; /* Smaller Title */
+  }
+
+  .timer {
+    font-size: 3rem; /* Smaller Timer */
+  }
+
+  .btn-start, .btn-stop {
+    width: 100%; /* Full width buttons are easier to tap */
+    padding: 15px 0;
+  }
+  
+  .controls {
+    border-radius: 30px;
+  }
+}
