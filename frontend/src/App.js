@@ -29,22 +29,23 @@ function App() {
 
   // 2. Start Recording (No Login Required anymore)
   const startRecording = async () => {
-    // 1. Check if the browser even supports Screen Recording
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
-      alert("Sorry! Your mobile browser does not support Screen Recording. Please try a Desktop or Android Chrome.");
-      return;
-    }
-
     try {
+      // Instead of checking if it exists, just try to use it immediately
       const stream = await navigator.mediaDevices.getDisplayMedia({
-        video: { cursor: "always" },
+        video: true, // Android is very strict: keep this simple
         audio: true 
       });
-
-
+    
+      startStream(stream);
+    
     } catch (err) {
-      console.error("Error starting capture:", err);
-      alert("Could not start recording: " + err.message);
+      console.error(err);
+      // If it fails, then we explain why
+      if (err.name === 'TypeError' || err.name === 'ReferenceError') {
+        alert("Your Android Chrome version is too old to support screen recording. Please update to Chrome 119+");
+      } else {
+        alert("Android Error: " + err.message);
+      }
     }
   };
 
