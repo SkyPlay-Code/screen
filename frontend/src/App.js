@@ -140,24 +140,43 @@ function App() {
 
   return (
     <div className="container">
-      <h1>Cloud Screen Recorder</h1>
-      <div className="system-status">System: {backendStatus}</div>
+      <h1>Cloud Recorder</h1>
+      
+      <div className="system-status">
+        Status: <strong>{backendStatus}</strong>
+      </div>
       
       <div className="controls">
+        {isRecording && <div className="timer-wrapper">
+          <span className="recording-indicator"></span>
+          <span className="timer">{formatTime(timer)}</span>
+        </div>}
+        
         {!isRecording ? (
-          <button onClick={startRecording} className="btn-start">Start Recording</button>
+          <button onClick={startRecording} className="btn-start">
+            Launch Capture
+          </button>
         ) : (
-          <button onClick={stopRecording} className="btn-stop">Stop Recording</button>
+          <button onClick={stopRecording} className="btn-stop">
+            Terminate
+          </button>
         )}
-        <div className="timer">Time: {formatTime(timer)}</div>
+        
+        {!isRecording && timer === 0 && (
+          <p style={{fontWeight: 'bold'}}>Ready to beam to Drive?</p>
+        )}
       </div>
-
+      
       <div className="upload-list">
-        <h3>Upload Queue</h3>
-        {uploadQueue.length === 0 && <p className="empty-msg">No uploads yet.</p>}
+        <h3>Live Feed Chunks</h3>
+        {uploadQueue.length === 0 && (
+          <div className="chunk-item" style={{justifyContent: 'center', borderStyle: 'dashed'}}>
+            Waiting for first chunk...
+          </div>
+        )}
         {uploadQueue.map(chunk => (
           <div key={chunk.id} className={`chunk-item ${chunk.status}`}>
-            <span>{chunk.filename}</span>
+            <span>{chunk.filename.substring(0, 20)}...</span>
             <span className="badge">{chunk.status}</span>
           </div>
         ))}
