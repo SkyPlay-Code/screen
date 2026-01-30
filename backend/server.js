@@ -14,7 +14,9 @@ const PORT = process.env.PORT || 5000;
 // Allow your frontend to talk to this backend
 // In strict production, replace '*' with your Vercel URL (e.g., 'https://my-app.vercel.app')
 app.use(cors({
-    origin: "https://screen-azure.vercel.app/"
+    origin: "https://screen-azure.vercel.app",
+    methods: ['POST', 'GET'],
+    allowedHeaders: ['Content-Type']
 }));
 
 // Configure Multer to hold files in memory (RAM) temporarily
