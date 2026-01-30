@@ -1,0 +1,12 @@
+.container { max-width: 800px; margin: 0 auto; padding: 20px; font-family: sans-serif; }
+.controls { display: flex; gap: 20px; align-items: center; margin-bottom: 30px; padding: 20px; background: #f5f5f5; border-radius: 8px; }
+.btn-start { background: #e74c3c; color: white; padding: 10px 20px; border: none; cursor: pointer; font-size: 16px; border-radius: 4px; }
+.btn-stop { background: #333; color: white; padding: 10px 20px; border: none; cursor: pointer; font-size: 16px; border-radius: 4px; }
+.btn-google { background: #4285F4; color: white; padding: 10px 20px; border: none; cursor: pointer; border-radius: 4px; }
+.timer { font-size: 20px; font-weight: bold; }
+.chunk-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; }
+.chunk-item.completed { color: green; }
+.chunk-item.failed { color: red; }
+.badge { padding: 4px 8px; background: #eee; border-radius: 4px; font-size: 12px; }
+.completed .badge { background: #d4edda; color: #155724; }
+.uploading .badge { background: #fff3cd; color: #856404; }
